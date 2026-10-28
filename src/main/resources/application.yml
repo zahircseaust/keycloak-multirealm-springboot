@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: keycloak-multirealm
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/tenants_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+app:
+  keycloak:
+    # Must match the issuer Keycloak puts in tokens (KC_HOSTNAME), without a trailing slash
+    base-url: ${KEYCLOAK_BASE_URL:http://localhost:8180}
+    # Direct internal server URL if different from base-url (e.g. inside Docker network)
+    server-url: ${KEYCLOAK_SERVER_URL:}
+    # Service-account client in the master realm that creates and configures tenant realms
+    admin-realm: ${KEYCLOAK_ADMIN_REALM:master}
+    admin-client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:tenant-provisioner}
+    admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:admin-client-secret}
+  tenants:
+    # Realm of the super admin who sits above all tenants
+    super-admin-realm: ${SUPER_ADMIN_REALM:platform}
+    # Tenant comes from the X-Tenant-ID header, or the subdomain of this domain
+    # e.g. bti.app.example.com -> realm "bti"
+    base-domain: ${BASE_DOMAIN:app.example.com}
+    # Codes a tenant can never use
+    reserved-codes: master,platform,admin,api,www,auth,keycloak
+    # Frontends allowed to call this API (CORS)
+    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:5173,https://*.app.example.com}
